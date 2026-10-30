@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+package-lock.json.bak
+
+# Build outputs
+dist/
+dist-ssr/
+*.local
+
+# Environment variables (Rule 4.9)
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.pytest_cache/
+
+# Large raw crawl data (Rule 4.10: only small fixtures committed)
+crawler/data/raw/
+crawler/data/manifests/
+crawler/data/clean/
+!crawler/tests/fixtures/
+
+# Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS generated files
+.DS_Store
+Thumbs.db
+*.log

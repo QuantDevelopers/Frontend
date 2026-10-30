@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Self-hosted IRANYekan Fonts (WebFont) — 100% offline, authentic Iranian financial typography */
+@font-face {
+  font-family: 'IRANYekan';
+  src: url('/fonts/IRANYekanWebRegular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IRANYekan';
+  src: url('/fonts/IRANYekanWebMedium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IRANYekan';
+  src: url('/fonts/IRANYekanWebBold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Fallback Vazirmatn */
+@font-face {
+  font-family: 'Vazirmatn';
+  src: url('/fonts/Vazirmatn-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vazirmatn';
+  src: url('/fonts/Vazirmatn-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  html {
+    direction: rtl;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'ss01' on;
+  }
+
+  body {
+    font-family: 'IRANYekan', 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #f8fafc;
+    color: #0f172a;
+  }
+
+  /* Fixed-width tabular digits for tables & financial data */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}

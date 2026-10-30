@@ -160,9 +160,6 @@ export function InstrumentsPage({ isOnline }: InstrumentsPageProps) {
     <div className="space-y-3">
       {/* Top Title & Refresh */}
       <div className="flex items-center justify-between">
-        <h1 className="text-sm font-bold text-slate-900">
-          فهرست دارایی‌
-        </h1>
 
         <button
           onClick={handleRefresh}

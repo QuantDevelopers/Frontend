@@ -42,8 +42,8 @@ export function Navbar({ isOnline, checking }: NavbarProps) {
                 {checking
                   ? 'در حال بررسی اتصال...'
                   : isOnline
-                    ? 'سرور متصل (FastAPI)'
-                    : 'عدم اتصال سرور (۸۰۰۰)'}
+                    ? 'سرور متصل'
+                    : 'عدم اتصال سرور'}
               </span>
             </div>
           </div>

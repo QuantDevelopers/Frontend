@@ -155,17 +155,6 @@ export function DataQualityPage() {
                 </div>
               ))}
             </div>
-            {job.circuit_broken && <p className="mt-3 text-xs text-rose-700">خزش به‌دلیل خطای زیاد متوقف شده است (circuit breaker).</p>}
-            {job.errors && job.errors.length > 0 && (
-              <details className="mt-3 text-xs">
-                <summary className="cursor-pointer text-rose-700">{toPersianDigits(job.errors.length)} خطا</summary>
-                <ul className="ltr scroll-thin mt-2 max-h-40 space-y-1 overflow-y-auto font-mono text-[11px] text-slate-600">
-                  {job.errors.map((e, i) => (
-                    <li key={i}>{e}</li>
-                  ))}
-                </ul>
-              </details>
-            )}
           </div>
         )}
       </Card>

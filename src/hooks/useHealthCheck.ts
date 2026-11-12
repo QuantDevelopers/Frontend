@@ -1,24 +1,29 @@
-import { useState, useEffect, useCallback } from 'react';
-import { checkHealth } from '../services/api';
+import { useCallback, useEffect, useState } from 'react';
+import { api } from '../services/api';
+import { ApiError } from '../services/http';
 
-const POLL_INTERVAL = 30000; // 30 seconds
+const POLL_INTERVAL = 30_000;
+
+/** online = API + DB ok, degraded = API up but DB down (HTTP 503), offline = API unreachable. */
+export type HealthState = 'checking' | 'online' | 'degraded' | 'offline';
 
 export function useHealthCheck() {
-  const [isOnline, setIsOnline] = useState(false);
-  const [checking, setChecking] = useState(true);
+  const [state, setState] = useState<HealthState>('checking');
 
   const check = useCallback(async () => {
-    setChecking(true);
-    const result = await checkHealth();
-    setIsOnline(result);
-    setChecking(false);
+    try {
+      const res = await api.health();
+      setState(res.status === 'healthy' ? 'online' : 'degraded');
+    } catch (err) {
+      setState(err instanceof ApiError && err.status === 503 ? 'degraded' : 'offline');
+    }
   }, []);
 
   useEffect(() => {
     check();
-    const interval = setInterval(check, POLL_INTERVAL);
-    return () => clearInterval(interval);
+    const id = setInterval(check, POLL_INTERVAL);
+    return () => clearInterval(id);
   }, [check]);
 
-  return { isOnline, checking, recheck: check };
+  return { state, recheck: check };
 }

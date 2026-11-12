@@ -7,4 +7,15 @@ export default defineConfig({
     port: 5173,
     open: true,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        // Separate long-lived vendor code from app code for better caching.
+        manualChunks: {
+          react: ['react', 'react-dom', 'react-router-dom'],
+          charts: ['lightweight-charts'],
+        },
+      },
+    },
+  },
 });

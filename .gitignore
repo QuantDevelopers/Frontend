@@ -13,22 +13,6 @@ dist-ssr/
 .env.*.local
 !.env.example
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-ENV/
-.pytest_cache/
-
-# Large raw crawl data (Rule 4.10: only small fixtures committed)
-crawler/data/raw/
-crawler/data/manifests/
-crawler/data/clean/
-!crawler/tests/fixtures/
 
 # Editor directories and files
 .vscode/

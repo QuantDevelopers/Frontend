@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { MouseEvent } from 'react';
 import { Check, Copy } from 'lucide-react';
 
 interface CopyButtonProps {
@@ -10,12 +11,14 @@ interface CopyButtonProps {
 export function CopyButton({ text, label, className = '' }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = async (e: React.MouseEvent) => {
+  const handleCopy = async (e: MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     try {
       if (navigator.clipboard && window.isSecureContext) {
         await navigator.clipboard.writeText(text);
       } else {
+        // Fallback for non-secure (http) contexts such as a LAN docker host
         const textarea = document.createElement('textarea');
         textarea.value = text;
         textarea.style.position = 'fixed';
@@ -26,7 +29,7 @@ export function CopyButton({ text, label, className = '' }: CopyButtonProps) {
         document.body.removeChild(textarea);
       }
       setCopied(true);
-      setTimeout(() => setCopied(false), 1600);
+      setTimeout(() => setCopied(false), 1500);
     } catch (err) {
       console.error('Failed to copy', err);
     }
@@ -36,17 +39,11 @@ export function CopyButton({ text, label, className = '' }: CopyButtonProps) {
     <button
       onClick={handleCopy}
       type="button"
-      className={`inline-flex items-center gap-1 text-slate-400 hover:text-slate-700 transition-colors p-0.5 rounded hover:bg-slate-200/60 cursor-pointer ${className}`}
-      title={copied ? 'کپی شد!' : (label || 'کپی در حافظه')}
+      className={`inline-flex items-center rounded p-0.5 text-slate-400 transition-colors hover:bg-slate-200/70 hover:text-slate-700 ${className}`}
+      title={copied ? 'کپی شد' : label || 'کپی'}
+      aria-label={label || 'کپی'}
     >
-      {copied ? (
-        <>
-          <Check size={11} className="text-emerald-600 stroke-[2.5]" />
-          <span className="text-[10px] text-emerald-700 font-bold">کپی شد</span>
-        </>
-      ) : (
-        <Copy size={11} className="stroke-[1.75]" />
-      )}
+      {copied ? <Check size={12} className="text-emerald-600" /> : <Copy size={12} />}
     </button>
   );
 }

@@ -1,47 +1,28 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Layout } from './components/Layout';
-import { InstrumentsPage } from './pages/InstrumentsPage';
-import { InstrumentDetailPage } from './pages/InstrumentDetailPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { DataQualityPage } from './pages/DataQualityPage';
-import { useHealthCheck } from './hooks/useHealthCheck';
+import { InstrumentsPage } from './pages/InstrumentsPage';
+import { NotFoundPage } from './pages/NotFoundPage';
+import { OptionChainPage } from './pages/OptionChainPage';
+import { OptionDetailPage } from './pages/OptionDetailPage';
+import { SearchPage } from './pages/SearchPage';
+import { UnderlyingDetailPage } from './pages/UnderlyingDetailPage';
 
 export default function App() {
-  const { isOnline, checking } = useHealthCheck();
-
   return (
     <BrowserRouter>
       <Routes>
-        <Route
-          element={
-            <Layout isOnline={isOnline} checking={checking} />
-          }
-        >
-          <Route
-            index
-            element={<InstrumentsPage isOnline={isOnline} />}
-          />
-          <Route
-            path="/instruments"
-            element={<InstrumentsPage isOnline={isOnline} />}
-          />
-          <Route
-            path="/dashboard"
-            element={<DashboardPage />}
-          />
-          <Route
-            path="/data-quality"
-            element={<DataQualityPage />}
-          />
-          <Route
-            path="/instruments/:insCode"
-            element={<InstrumentDetailPage />}
-          />
-          {/* Fallback route */}
-          <Route
-            path="*"
-            element={<InstrumentsPage isOnline={isOnline} />}
-          />
+        <Route element={<Layout />}>
+          <Route index element={<DashboardPage />} />
+          <Route path="instruments" element={<InstrumentsPage />} />
+          <Route path="search" element={<SearchPage />} />
+          <Route path="underlyings/:symbol" element={<UnderlyingDetailPage />} />
+          <Route path="options/:symbol" element={<OptionDetailPage />} />
+          <Route path="option-chain" element={<OptionChainPage />} />
+          <Route path="option-chain/:symbol" element={<OptionChainPage />} />
+          <Route path="data-quality" element={<DataQualityPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

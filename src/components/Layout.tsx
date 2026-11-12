@@ -1,23 +1,20 @@
-import { Outlet } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
+import { useHealthCheck } from '../hooks/useHealthCheck';
 import { Navbar } from './Navbar';
 
-interface LayoutProps {
-  isOnline: boolean;
-  checking: boolean;
-}
+export function Layout() {
+  const { state, recheck } = useHealthCheck();
+  const { pathname } = useLocation();
 
-export function Layout({ isOnline, checking }: LayoutProps) {
+  useEffect(() => window.scrollTo({ top: 0 }), [pathname]);
+
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-800 antialiased">
-      <Navbar isOnline={isOnline} checking={checking} />
-
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-3.5">
+    <div className="min-h-screen">
+      <Navbar health={state} onRecheck={recheck} />
+      <main className="mx-auto w-full max-w-7xl space-y-5 px-4 py-6 sm:px-6">
         <Outlet />
       </main>
-
-      <footer className="bg-white border-t border-slate-200 mt-auto text-xs text-slate-400 py-2.5 text-center">
-        سامانه پایش بازار اختیار معامله بورس تهران
-      </footer>
     </div>
   );
 }

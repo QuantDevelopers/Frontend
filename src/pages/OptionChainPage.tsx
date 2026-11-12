@@ -25,9 +25,9 @@ export function OptionChainPage() {
 
   const chain = useQuery(symbol ? `chain:${symbol}` : null, () => api.optionChain(symbol!), { ttl: 60_000 });
 
-  // default to the nearest non-expired expiry
-  const expirations = chain.data?.expirations ?? [];
-  const activeExpiry = expiry ?? expirations.find((e) => daysUntil(e) >= 0) ?? expirations[0];
+  // the backend keeps past expiries in the chain (contracts stay flagged active), so drop them
+  const expirations = useMemo(() => (chain.data?.expirations ?? []).filter((e) => daysUntil(e) >= 0), [chain.data]);
+  const activeExpiry = expiry ?? expirations[0];
   const rows = useMemo(
     () => (chain.data?.rows ?? []).filter((r) => r.expiration_date === activeExpiry),
     [chain.data, activeExpiry]
@@ -111,7 +111,6 @@ export function OptionChainPage() {
             <div className="scroll-thin flex max-w-full gap-1.5 overflow-x-auto">
               {expirations.map((e) => {
                 const active = e === activeExpiry;
-                const left = daysUntil(e);
                 return (
                   <button
                     key={e}
@@ -124,7 +123,7 @@ export function OptionChainPage() {
                     {formatJalali(e)}
                     <span className={active ? 'text-indigo-200' : 'text-slate-400'}>
                       {' '}
-                      ({left >= 0 ? `${toPersianDigits(left)} روز` : 'گذشته'})
+                      ({toPersianDigits(daysUntil(e))} روز)
                     </span>
                   </button>
                 );

@@ -54,8 +54,8 @@ export function DashboardPage() {
           />
           <StatCard
             label="قراردادهای فعال"
-            value={formatCount(db?.options_active)}
-            loading={!db}
+            value={formatCount(overview.data?.activeOptions.length)}
+            loading={!overview.data}
             hint={db && `از ${formatCount(db.options_total)} قرارداد ثبت‌شده`}
           />
           <StatCard label="ردیف‌های تاریخچه روزانه" value={formatCompact(db?.daily_history_rows)} loading={!db} />

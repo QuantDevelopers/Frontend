@@ -2,8 +2,9 @@ import { useMemo, useState } from 'react';
 import { useQuery } from '../hooks/useQuery';
 import { fetchAllTicks } from '../services/api';
 import { ApiError } from '../services/http';
-import type { DailyHistoryItem, InstrumentType, PaginationMeta } from '../types/api';
+import type { DailyHistoryItem, InstrumentType } from '../types/api';
 import { ticksToCandles } from '../utils/candles';
+import { paginate } from '../utils/paginate';
 import { formatCompact, formatCount, formatJalali, formatPrice, normalizeClock, toPersianDigits } from '../utils/formatters';
 import { PriceChart } from './PriceChart';
 import { Pagination } from './ui/Pagination';
@@ -71,16 +72,7 @@ export function IntradayPanel({ type, symbol, daily, contractSize = 1 }: Intrada
   }, [ticks]);
   const dayBar = data?.tradeDate ? daily.find((d) => d.trade_date === data.tradeDate) : undefined;
 
-  const totalPages = Math.max(1, Math.ceil(ticks.length / TICK_PAGE_SIZE));
-  const meta: PaginationMeta = {
-    currentPage: page,
-    pageSize: TICK_PAGE_SIZE,
-    totalItems: ticks.length,
-    totalPages,
-    hasNextPage: page < totalPages,
-    hasPrevPage: page > 1,
-  };
-  const pageTicks = ticks.slice((page - 1) * TICK_PAGE_SIZE, page * TICK_PAGE_SIZE);
+  const { items: pageTicks, pagination: meta } = paginate(ticks, page, TICK_PAGE_SIZE);
 
   return (
     <div className="space-y-4 p-4">

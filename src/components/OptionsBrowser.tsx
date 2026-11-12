@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDebounce } from '../hooks/useDebounce';
 import { useQuery } from '../hooks/useQuery';
-import { api } from '../services/api';
+import { api, fetchExpiredOptions, fetchLiveOptions } from '../services/api';
 import type { ContractType, ListOptionsParams, UnderlyingResponse } from '../types/api';
 import { daysUntil, formatJalali, formatPrice, toPersianDigits } from '../utils/formatters';
+import { paginate } from '../utils/paginate';
 import { routes } from '../utils/routes';
 import { CodeChip, ContractTypeBadge, StatusBadge } from './Badges';
 import { Pagination } from './ui/Pagination';
@@ -23,7 +24,11 @@ interface OptionsBrowserProps {
   underlyings?: UnderlyingResponse[];
 }
 
-/** Server-side filtered & paginated view over GET /api/v1/options. */
+/**
+ * Filtered & paginated view over GET /api/v1/options.
+ * "All" pages on the server. "Active"/"expired" load every matching contract and page on the client,
+ * because the backend's is_active flag stays true after expiry (see fetchLiveOptions).
+ */
 export function OptionsBrowser({ underlyingSymbol, underlyings }: OptionsBrowserProps) {
   const [text, setText] = useState('');
   const [type, setType] = useState<TypeFilter>('ALL');
@@ -39,13 +44,20 @@ export function OptionsBrowser({ underlyingSymbol, underlyings }: OptionsBrowser
   const params: ListOptionsParams = {
     q: q || undefined,
     contract_type: type === 'ALL' ? undefined : type,
-    is_active: status === 'all' ? undefined : status === 'active',
     symbol_ua: ua || undefined,
   };
-  const key = `options:${JSON.stringify(params)}:${page}`;
-  const { data, error, loading, reload } = useQuery(key, () =>
+  const filterKey = JSON.stringify(params);
+
+  const server = useQuery(status === 'all' ? `options:${filterKey}:${page}` : null, () =>
     api.options({ ...params, page, page_size: PAGE_SIZE })
   );
+  const full = useQuery(status === 'all' ? null : `options-${status}:${filterKey}`, () =>
+    status === 'active' ? fetchLiveOptions(params) : fetchExpiredOptions(params)
+  );
+  const clientPage = useMemo(() => full.data && paginate(full.data, page, PAGE_SIZE), [full.data, page]);
+
+  const { error, loading, reload } = status === 'all' ? server : full;
+  const data = status === 'all' ? server.data : clientPage;
 
   return (
     <div>

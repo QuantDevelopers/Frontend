@@ -1,7 +1,7 @@
 # ----------------------------------------------------
 # Stage 1: Base Environment
 # ----------------------------------------------------
-FROM node:22-alpine AS base
+FROM node:22.12.0-alpine3.21 AS base
 WORKDIR /app
 COPY package*.json ./
 
@@ -9,7 +9,7 @@ COPY package*.json ./
 # Stage 2: Development (Hot-Reloading with Vite)
 # ----------------------------------------------------
 FROM base AS dev
-RUN npm install
+RUN npm ci
 COPY . .
 EXPOSE 5173
 CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
@@ -30,7 +30,7 @@ RUN npm run build
 # ----------------------------------------------------
 # Stage 4: Production Image (Nginx Alpine)
 # ----------------------------------------------------
-FROM nginx:alpine AS production
+FROM nginx:1.27.3-alpine AS production
 
 # Remove default nginx static html files
 RUN rm -rf /usr/share/nginx/html/*

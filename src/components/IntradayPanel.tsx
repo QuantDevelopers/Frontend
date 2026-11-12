@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '../hooks/useQuery';
 import { fetchAllTicks } from '../services/api';
+import { ApiError } from '../services/http';
 import type { DailyHistoryItem, InstrumentType, PaginationMeta } from '../types/api';
 import { ticksToCandles } from '../utils/candles';
 import { formatCompact, formatCount, formatJalali, formatPrice, normalizeClock, toPersianDigits } from '../utils/formatters';
@@ -46,7 +47,18 @@ export function IntradayPanel({ type, symbol, daily, contractSize = 1 }: Intrada
 
   const { data, error, loading, reload } = useQuery(
     `ticks-day:${type}:${symbol}:${date}`,
-    () => fetchAllTicks(type, symbol, date || undefined),
+    async () => {
+      if (date) return fetchAllTicks(type, symbol, date);
+      try {
+        return await fetchAllTicks(type, symbol, undefined);
+      } catch (e) {
+        // Backend quirk: /ticks without ?date= answers 500 when the instrument has no ticks at all
+        // (MAX(trade_date) is NULL). Fall back to the latest traded day, which takes the normal path.
+        if (!(e instanceof ApiError) || e.status !== 500) throw e;
+        const latest = tradedDays[0]?.trade_date;
+        return latest ? fetchAllTicks(type, symbol, latest) : { items: [], totalItems: 0, truncated: false };
+      }
+    },
     { ttl: 300_000 }
   );
 

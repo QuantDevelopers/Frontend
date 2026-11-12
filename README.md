@@ -4,7 +4,7 @@ A Persian (RTL) web app for the Tehran Stock Exchange options market.
 It shows the data collected by the course backend (QuantBackend: Go / Echo / PostgreSQL) as the five pages the Phase 1 rules require:
 
 - dashboard
-- instrument search
+- instrument search (the search box in the navbar, on every page)
 - instrument detail with chart
 - option chain
 - data quality
@@ -96,11 +96,13 @@ Constants derived from the course rules live in `src/config.ts`:
 | ----- | ---- | ------- |
 | `/` | Dashboard | Registry and database counts, active contracts per underlying (calls and puts), upcoming expiries |
 | `/instruments` | Instruments | Tab 1: the underlyings table (insCode, market, last close, change, active contracts, nearest expiry). It is sortable and filterable, with CSV export. Tab 2: all option contracts, with server-side filters (underlying, call/put, active/expired, text) and pagination. |
-| `/search?q=` | Search | Unified search over underlyings and contracts by symbol, name, insCode or ISIN. The navbar search box also shows live suggestions. |
+| `/charts?u=&o=` | Charts | Pick an underlying (and optionally one of its active contracts) and see its daily candles and intraday candles built from ticks, without going through the instrument pages |
 | `/underlyings/:symbol` | Underlying detail | Last close and day stats. Tabs: daily candlestick chart with volume (1M → all), intraday (candles from ticks, tick table, reconciliation with the daily bar), daily history table, and the underlying's contracts. |
 | `/options/:symbol` | Option detail | Type, strike, expiry (Jalali, days left), contract size, status, insCode/ISIN, moneyness vs the underlying's last close, open interest. Tabs: daily chart, intraday, history. |
 | `/option-chain/:symbol` | Option chain | Expiry selector, then a calls \| strike \| puts table with ITM/ATM/OTM, the last price, volume and open interest of each contract, and a spot-price marker row |
 | `/data-quality` | Data quality | Crawl and database status, latest crawler run, coverage heatmap (underlyings × Jalali months), per-symbol checks, and a gaps list |
+
+The navbar search (shortcut `/`) matches underlyings and contracts by symbol, name, insCode or ISIN. Enter opens the highlighted (or first) result.
 
 All numbers use Persian digits, dates are Jalali, and timestamps are in Asia/Tehran.
 The navbar shows backend status (`/health`, polled every 30s).
@@ -120,7 +122,7 @@ Requests send `Accept-Language: fa_IR`, so 404/422 errors arrive in Persian (`sr
 | `GET /api/v1/underlyings/{symbol_fa}/option-chain` | Option chain |
 | `GET /api/v1/options` | Contract list, counts per underlying |
 | `GET /api/v1/options/{symbol_fa}` | Option detail |
-| `GET /api/v1/instruments/search` | Search page and navbar suggestions |
+| `GET /api/v1/instruments/search` | Navbar search suggestions |
 | `GET /api/v1/daily-history/{underlying\|option}/{symbol_fa}` | Charts, history, last prices, chain prices, quality checks |
 | `GET /api/v1/ticks/{underlying\|option}/{symbol_fa}` | Intraday chart, tick table, reconciliation |
 | `GET /api/v1/crawl/status` | Dashboard and data-quality counters |
@@ -207,6 +209,7 @@ There are 21 unit tests covering:
 - The dashboard, instruments and quality pages request daily history once per underlying (25 requests, 4–6 at a time, cached).
 - Intraday views load at most 20,000 ticks per day (40 pages × 500). Beyond that the view is marked truncated and reconciliation is skipped.
 - The trading calendar is inferred from the data. A day missing for every symbol is not detected as a gap.
+- `/ticks` without `?date=` returns 500 when an instrument has no ticks at all (backend `MAX(trade_date)` NULL scan). The intraday view retries with the latest traded day, so it shows "no ticks" instead of an error.
 - The option chain shows active contracts only (backend behaviour). Expired contracts are listed under Instruments → contracts → «منقضی».
 
 ## AI usage

@@ -11,8 +11,10 @@ import { normalizePersianText } from '../utils/normalizePersian';
 import { routes } from '../utils/routes';
 import { ContractTypeBadge, MarketBadge } from './Badges';
 
-export const instrumentPath = (item: InstrumentSearchItem) =>
+const instrumentPath = (item: InstrumentSearchItem) =>
   item.instrument_type === 'OPTION' ? routes.option(item.symbol_fa) : routes.underlying(item.symbol_fa);
+
+const SUGGESTION_LIMIT = 20;
 
 /** Navbar search with live suggestions from GET /api/v1/instruments/search. */
 export function GlobalSearch() {
@@ -24,8 +26,8 @@ export function GlobalSearch() {
   const query = useDebounce(normalizePersianText(text.trim()), 250);
 
   const { data, loading } = useQuery(
-    query ? `search:${query}:8` : null,
-    () => api.search(query, 8),
+    query ? `search:${query}:${SUGGESTION_LIMIT}` : null,
+    () => api.search(query, SUGGESTION_LIMIT),
     { ttl: 30_000 }
   );
   const items = data?.items ?? [];
@@ -62,8 +64,8 @@ export function GlobalSearch() {
       e.preventDefault();
       setHighlight((h) => Math.max(h - 1, -1));
     } else if (e.key === 'Enter') {
-      if (highlight >= 0 && items[highlight]) go(instrumentPath(items[highlight]));
-      else if (text.trim()) go(routes.search(text.trim()));
+      const item = items[Math.max(highlight, 0)];
+      if (item) go(instrumentPath(item));
     } else if (e.key === 'Escape') {
       setOpen(false);
       inputRef.current?.blur();
@@ -140,14 +142,6 @@ export function GlobalSearch() {
               ))}
             </ul>
           )}
-          <button
-            type="button"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => go(routes.search(text.trim()))}
-            className="block w-full border-t border-slate-100 px-4 py-2 text-right text-xs text-indigo-600 hover:bg-slate-50"
-          >
-            همه نتایج
-          </button>
         </div>
       )}
     </div>

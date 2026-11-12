@@ -7,7 +7,7 @@ import { HealthBadge } from './HealthBadge';
 const NAV_ITEMS = [
   { to: routes.dashboard, label: 'داشبورد', end: true },
   { to: routes.instruments, label: 'ابزارها', end: false },
-  { to: routes.search(), label: 'جستجو', end: false },
+  { to: routes.charts, label: 'نمودار', end: false },
   { to: routes.optionChain(), label: 'زنجیره اختیار', end: false },
   { to: routes.dataQuality, label: 'کیفیت داده', end: false },
 ];

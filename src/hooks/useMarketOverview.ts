@@ -1,7 +1,6 @@
-import { api, fetchAllOptions } from '../services/api';
+import { api, fetchLiveOptions } from '../services/api';
 import type { DailyHistoryItem, OptionResponse, UnderlyingResponse } from '../types/api';
 import { mapWithConcurrency } from '../utils/concurrency';
-import { isExpired } from '../utils/market';
 import { useQuery } from './useQuery';
 
 /** One underlying enriched with its latest daily bar and active option counts. */
@@ -37,16 +36,11 @@ function changePct(items: DailyHistoryItem[]): number | undefined {
  * Builds the market overview used by the dashboard and the instruments page.
  * The backend exposes no aggregate endpoint, so this combines:
  *   - GET /underlyings                     (registry)
- *   - GET /options?is_active=true (paged)  (contract counts & nearest expiry)
+ *   - GET /options?is_active=true (paged, past-expiry dropped) (contract counts & nearest expiry)
  *   - GET /daily-history/underlying/{s}?limit=2 per underlying (last price & change)
  */
 async function loadOverview(): Promise<MarketOverview> {
-  const [{ items: underlyings }, flaggedActive] = await Promise.all([
-    api.underlyings(),
-    fetchAllOptions({ is_active: true }),
-  ]);
-  // the backend keeps expired contracts flagged active
-  const activeOptions = flaggedActive.filter((o) => !isExpired(o));
+  const [{ items: underlyings }, activeOptions] = await Promise.all([api.underlyings(), fetchLiveOptions()]);
 
   const daily = await mapWithConcurrency(underlyings, DAILY_FANOUT_CONCURRENCY, (u) =>
     api.dailyHistory('UNDERLYING', u.symbol_fa, { limit: 2 })

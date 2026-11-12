@@ -140,7 +140,7 @@ When a view needs one request per instrument, at most 4–6 run in parallel (`ut
 | Tick times on the chart | Tehran wall-clock time encoded as a UTC timestamp | The axis shows exchange time (09:00–12:30) in any timezone |
 | Last price / change per underlying | `/daily-history?limit=2` | `/underlyings` has no prices |
 | Active calls/puts, nearest expiry | All active contracts from `/options` (200 per page) | No aggregate endpoint |
-| Contract status | Expiry date in the past → «منقضی» (expired), whatever `is_active`/`status` say | The backend never marks contracts expired |
+| Contract status and active/expired filters | Expiry date in the past → «منقضی» (expired), whatever `is_active`/`status` say. Used by the badge, the contract filters, active counts, the chain's expiry list and the chart picker (`fetchLiveOptions`, `fetchExpiredOptions`) | The backend never marks contracts expired |
 | Option daily history | Rows after the expiry date are dropped (`capAtExpiry`) | The backend returns zero-volume rows after expiry |
 | Moneyness on the option page | Same rule as backend `domain/options` (ATM = within ±1% of strike) | The chain endpoint does this only for the chain |
 | Chain prices | Last daily bar of each contract in the selected expiry | The chain endpoint returns no prices |
@@ -213,7 +213,7 @@ There are 21 unit tests covering:
 - The trading calendar is inferred from the data. A day missing for every symbol is not detected as a gap.
 - `/ticks` without `?date=` returns 500 when an instrument has no ticks at all (backend `MAX(trade_date)` NULL scan). The intraday view retries with the latest traded day, so it shows "no ticks" instead of an error.
 - Underlyings without a TSETMC insCode are hidden everywhere (list, search, counts, quality). They can't be crawled, so they would only ever show as empty. They appear automatically once the backend stores their insCode.
-- The «فعال» (active) filter on the contracts tab is the backend's `is_active=true`, so it can still list expired contracts (shown with the «منقضی» badge). Active counts, nearest expiries and the chart picker exclude them on the client.
+- The «فعال»/«منقضی» (active/expired) filters on the contracts tab load every matching contract (200 per request) and page on the client, because the backend's `is_active` stays true after expiry. «همه» (all) still pages on the server.
 - The option chain shows active contracts only (backend behaviour). Expired contracts are listed under Instruments → contracts → «منقضی».
 
 ## AI usage

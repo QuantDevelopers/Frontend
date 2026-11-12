@@ -7,10 +7,10 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { ErrorState, Loading } from '../components/ui/States';
 import { useInstrumentDaily } from '../hooks/useInstrumentDaily';
 import { useQuery } from '../hooks/useQuery';
-import { api, fetchAllOptions } from '../services/api';
+import { api, fetchLiveOptions } from '../services/api';
 import type { OptionResponse } from '../types/api';
 import { formatJalali, formatPrice } from '../utils/formatters';
-import { capAtExpiry, isExpired } from '../utils/market';
+import { capAtExpiry } from '../utils/market';
 import { routes } from '../utils/routes';
 
 /** Groups active contracts by expiry (nearest first), sorted by type then strike inside each group. */
@@ -39,7 +39,7 @@ export function ChartsPage() {
 
   const contracts = useQuery(
     uaSymbol ? `active-options:${uaSymbol}` : null,
-    async () => (await fetchAllOptions({ symbol_ua: uaSymbol!, is_active: true })).filter((c) => !isExpired(c)),
+    () => fetchLiveOptions({ symbol_ua: uaSymbol! }),
     { ttl: 300_000 }
   );
   const groups = useMemo(() => groupByExpiry(contracts.data ?? []), [contracts.data]);

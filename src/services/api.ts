@@ -15,6 +15,7 @@ import type {
   UnderlyingListResponse,
   UnderlyingResponse,
 } from '../types/api';
+import { contractStatus } from '../utils/market';
 import { normalizePersianText } from '../utils/normalizePersian';
 import { ApiError, apiGet } from './http';
 
@@ -125,6 +126,28 @@ export async function fetchAllOptions(
     all.push(...next.items);
   }
   return all;
+}
+
+type OptionFilters = Omit<ListOptionsParams, 'page' | 'page_size' | 'is_active'>;
+
+/**
+ * Contracts that are really active. The backend keeps `is_active=true` after expiry,
+ * so its active set is narrowed with the same rule the status badge uses.
+ */
+export async function fetchLiveOptions(params: OptionFilters = {}, signal?: AbortSignal): Promise<OptionResponse[]> {
+  const flagged = await fetchAllOptions({ ...params, is_active: true }, signal);
+  return flagged.filter((o) => contractStatus(o) === 'ACTIVE');
+}
+
+/** Expired contracts: those the backend flags inactive plus flagged-active ones past their expiry. Newest expiry first. */
+export async function fetchExpiredOptions(params: OptionFilters = {}, signal?: AbortSignal): Promise<OptionResponse[]> {
+  const [flaggedActive, inactive] = await Promise.all([
+    fetchAllOptions({ ...params, is_active: true }, signal),
+    fetchAllOptions({ ...params, is_active: false }, signal),
+  ]);
+  return [...flaggedActive.filter((o) => contractStatus(o) !== 'ACTIVE'), ...inactive].sort((a, b) =>
+    b.expiration_date.localeCompare(a.expiration_date)
+  );
 }
 
 /** Upper bound of tick pages fetched for one day (40 × 500 = 20k ticks) to stay polite to the API. */

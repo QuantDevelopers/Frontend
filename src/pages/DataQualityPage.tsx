@@ -8,7 +8,7 @@ import { StatCard } from '../components/ui/StatCard';
 import { EmptyState, ErrorState, Loading } from '../components/ui/States';
 import { COVERAGE_TARGET_PCT, DAILY_HISTORY_MAX_LIMIT, DATA_START_DATE } from '../config';
 import { useQuery } from '../hooks/useQuery';
-import { api } from '../services/api';
+import { api, fetchLiveOptions } from '../services/api';
 import { mapWithConcurrency } from '../utils/concurrency';
 import {
   formatBytes,
@@ -51,6 +51,7 @@ const gapText = (from: string, to: string) => (from === to ? formatJalali(from) 
 export function DataQualityPage() {
   const status = useQuery('crawl-status', () => api.crawlStatus(), { ttl: 30_000 });
   const quality = useQuery('quality-daily', loadQuality, { ttl: 300_000 });
+  const liveOptions = useQuery('live-options', () => fetchLiveOptions(), { ttl: 120_000 });
 
   const results = quality.data?.results ?? [];
   const calendar = quality.data?.calendar ?? [];
@@ -115,7 +116,7 @@ export function DataQualityPage() {
             label="قراردادها"
             value={formatCount(db?.options_total)}
             loading={!db}
-            hint={db && `${formatCount(db.options_active)} فعال`}
+            hint={liveOptions.data && `${formatCount(liveOptions.data.length)} فعال`}
           />
           <StatCard
             label="ردیف‌های روزانه / تیک"

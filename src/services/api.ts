@@ -16,11 +16,17 @@ import type {
   UnderlyingResponse,
 } from '../types/api';
 import { normalizePersianText } from '../utils/normalizePersian';
-import { apiGet } from './http';
+import { ApiError, apiGet } from './http';
 
 /** Path segment for daily-history / ticks routes. */
 const typeSegment = (t: InstrumentType) => (t === 'OPTION' ? 'option' : 'underlying');
 const seg = (s: string) => encodeURIComponent(normalizePersianText(s));
+
+/**
+ * Underlyings without a TSETMC insCode can't be crawled, so they never have data.
+ * They are hidden everywhere; once the backend has their insCode they appear on their own.
+ */
+const hasInsCode = (u: { tsetmc_id?: string | null }) => !!u.tsetmc_id;
 
 /** Drops empty values so they are not sent as `?key=`. */
 function clean<T extends object>(params: T): Partial<T> {
@@ -34,12 +40,18 @@ export const api = {
   health: (signal?: AbortSignal) => apiGet<HealthResponse>('/health', undefined, signal),
 
   /** GET /api/v1/underlyings */
-  underlyings: (signal?: AbortSignal) =>
-    apiGet<UnderlyingListResponse>('/api/v1/underlyings', undefined, signal),
+  underlyings: async (signal?: AbortSignal): Promise<UnderlyingListResponse> => {
+    const res = await apiGet<UnderlyingListResponse>('/api/v1/underlyings', undefined, signal);
+    const items = res.items.filter(hasInsCode);
+    return { total: items.length, items };
+  },
 
   /** GET /api/v1/underlyings/{symbol_fa} */
-  underlying: (symbol: string, signal?: AbortSignal) =>
-    apiGet<UnderlyingResponse>(`/api/v1/underlyings/${seg(symbol)}`, undefined, signal),
+  underlying: async (symbol: string, signal?: AbortSignal): Promise<UnderlyingResponse> => {
+    const u = await apiGet<UnderlyingResponse>(`/api/v1/underlyings/${seg(symbol)}`, undefined, signal);
+    if (!hasInsCode(u)) throw new ApiError('دارایی پایه یافت نشد', 404);
+    return u;
+  },
 
   /** GET /api/v1/underlyings/{symbol_fa}/option-chain */
   optionChain: (symbol: string, signal?: AbortSignal) =>
@@ -58,12 +70,15 @@ export const api = {
     apiGet<OptionResponse>(`/api/v1/options/${seg(symbol)}`, undefined, signal),
 
   /** GET /api/v1/instruments/search?q=&limit= (limit max 100) */
-  search: (q: string, limit = 20, signal?: AbortSignal) =>
-    apiGet<InstrumentSearchResponse>(
+  search: async (q: string, limit = 20, signal?: AbortSignal): Promise<InstrumentSearchResponse> => {
+    const res = await apiGet<InstrumentSearchResponse>(
       '/api/v1/instruments/search',
       { q: normalizePersianText(q.trim()), limit },
       signal
-    ),
+    );
+    const items = res.items.filter((i) => i.instrument_type === 'OPTION' || hasInsCode(i));
+    return { ...res, total: res.total - (res.items.length - items.length), items };
+  },
 
   /** GET /api/v1/daily-history/{type}/{symbol_fa} — newest first, limit max 1000 */
   dailyHistory: (

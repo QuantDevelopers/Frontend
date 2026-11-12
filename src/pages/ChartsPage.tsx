@@ -33,8 +33,7 @@ export function ChartsPage() {
   const underlyings = useQuery('underlyings', () => api.underlyings(), { ttl: 300_000 });
   const list = underlyings.data?.items ?? [];
 
-  // Default to the first underlying that has a TSETMC id (the ones the crawler can fill).
-  const uaSymbol = params.get('u') || list.find((u) => u.tsetmc_id)?.symbol_fa || list[0]?.symbol_fa;
+  const uaSymbol = params.get('u') || list[0]?.symbol_fa;
   const optSymbol = params.get('o') || '';
 
   const contracts = useQuery(

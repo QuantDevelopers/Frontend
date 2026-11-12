@@ -49,9 +49,8 @@ export function DashboardPage() {
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
             label="دارایی‌های پایه"
-            value={formatCount(db?.underlyings_total)}
+            value={formatCount(db?.underlyings_with_tsetmc_id)}
             loading={!db}
-            hint={db && `${formatCount(db.underlyings_with_tsetmc_id)} نماد دارای insCode`}
           />
           <StatCard
             label="قراردادهای فعال"

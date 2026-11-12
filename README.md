@@ -210,6 +210,7 @@ There are 21 unit tests covering:
 - Intraday views load at most 20,000 ticks per day (40 pages × 500). Beyond that the view is marked truncated and reconciliation is skipped.
 - The trading calendar is inferred from the data. A day missing for every symbol is not detected as a gap.
 - `/ticks` without `?date=` returns 500 when an instrument has no ticks at all (backend `MAX(trade_date)` NULL scan). The intraday view retries with the latest traded day, so it shows "no ticks" instead of an error.
+- Underlyings without a TSETMC insCode are hidden everywhere (list, search, counts, quality). They can't be crawled, so they would only ever show as empty. They appear automatically once the backend stores their insCode.
 - The option chain shows active contracts only (backend behaviour). Expired contracts are listed under Instruments → contracts → «منقضی».
 
 ## AI usage

@@ -65,7 +65,6 @@ export function DataQualityPage() {
   }, [results]);
 
   const gaps = useMemo(() => {
-    const noInsCode = results.filter((r) => !r.underlying.tsetmc_id).map((r) => r.underlying.symbol_fa);
     const noData = results.filter((r) => r.tradedDays === 0).map((r) => r.underlying.symbol_fa);
     const lateStart = results.filter((r) => r.firstDate && r.firstDate > (calendar[0] ?? DATA_START_DATE));
     // instruments without any data are listed in `noData`, not as one giant gap
@@ -74,7 +73,7 @@ export function DataQualityPage() {
       .flatMap((r) => r.gaps.map((g) => ({ ...g, symbol: r.underlying.symbol_fa })))
       .sort((a, b) => b.days - a.days)
       .slice(0, 10);
-    return { noInsCode, noData, lateStart, biggest };
+    return { noData, lateStart, biggest };
   }, [results, calendar]);
 
   const db = status.data?.database;
@@ -108,8 +107,8 @@ export function DataQualityPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
-            label="دارایی‌های دارای insCode"
-            value={db ? `${formatCount(db.underlyings_with_tsetmc_id)} از ${formatCount(db.underlyings_total)}` : '—'}
+            label="دارایی‌های پایه"
+            value={formatCount(db?.underlyings_with_tsetmc_id)}
             loading={!db}
           />
           <StatCard
@@ -248,10 +247,6 @@ export function DataQualityPage() {
           <Card title="شکاف‌ها">
             <div className="grid gap-6 p-4 text-sm md:grid-cols-2">
               <dl className="space-y-3">
-                <div>
-                  <dt className="text-xs text-slate-500">بدون insCode</dt>
-                  <dd>{gaps.noInsCode.join('، ') || '—'}</dd>
-                </div>
                 <div>
                   <dt className="text-xs text-slate-500">بدون داده روزانه</dt>
                   <dd>{gaps.noData.join('، ') || '—'}</dd>

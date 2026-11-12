@@ -32,7 +32,9 @@ export function OptionsBrowser({ underlyingSymbol, underlyings }: OptionsBrowser
   const [page, setPage] = useState(1);
   const q = useDebounce(text.trim(), 300);
 
-  useEffect(() => setPage(1), [q, type, status, ua]);
+  useEffect(() => {
+    setPage(1);
+  }, [q, type, status, ua]);
 
   const params: ListOptionsParams = {
     q: q || undefined,

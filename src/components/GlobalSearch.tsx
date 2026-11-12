@@ -43,7 +43,9 @@ export function GlobalSearch() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  useEffect(() => setHighlight(-1), [query]);
+  useEffect(() => {
+    setHighlight(-1);
+  }, [query]);
 
   const go = (path: string) => {
     setOpen(false);

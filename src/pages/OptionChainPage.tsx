@@ -19,7 +19,9 @@ export function OptionChainPage() {
   const underlyings = useQuery('underlyings', () => api.underlyings(), { ttl: 300_000 });
   const [expiry, setExpiry] = useState<string | undefined>();
 
-  useEffect(() => setExpiry(undefined), [symbol]);
+  useEffect(() => {
+    setExpiry(undefined);
+  }, [symbol]);
 
   const chain = useQuery(symbol ? `chain:${symbol}` : null, () => api.optionChain(symbol!), { ttl: 60_000 });
 

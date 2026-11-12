@@ -7,7 +7,11 @@ export function Layout() {
   const { state, recheck } = useHealthCheck();
   const { pathname } = useLocation();
 
-  useEffect(() => window.scrollTo({ top: 0 }), [pathname]);
+  // Block body on purpose: in recent browsers scrollTo() returns a Promise, and an
+  // expression-bodied effect would hand it to React as a "cleanup" and crash on navigation.
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [pathname]);
 
   return (
     <div className="min-h-screen">

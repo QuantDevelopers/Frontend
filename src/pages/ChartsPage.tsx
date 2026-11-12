@@ -10,6 +10,7 @@ import { useQuery } from '../hooks/useQuery';
 import { api, fetchAllOptions } from '../services/api';
 import type { OptionResponse } from '../types/api';
 import { formatJalali, formatPrice } from '../utils/formatters';
+import { capAtExpiry, isExpired } from '../utils/market';
 import { routes } from '../utils/routes';
 
 /** Groups active contracts by expiry (nearest first), sorted by type then strike inside each group. */
@@ -38,7 +39,7 @@ export function ChartsPage() {
 
   const contracts = useQuery(
     uaSymbol ? `active-options:${uaSymbol}` : null,
-    () => fetchAllOptions({ symbol_ua: uaSymbol!, is_active: true }),
+    async () => (await fetchAllOptions({ symbol_ua: uaSymbol!, is_active: true })).filter((c) => !isExpired(c)),
     { ttl: 300_000 }
   );
   const groups = useMemo(() => groupByExpiry(contracts.data ?? []), [contracts.data]);
@@ -47,7 +48,8 @@ export function ChartsPage() {
   const type = optSymbol ? 'OPTION' : 'UNDERLYING';
   const symbol = optSymbol || uaSymbol;
   const daily = useInstrumentDaily(type, symbol);
-  const items = daily.data?.items ?? [];
+  const rawItems = daily.data?.items ?? [];
+  const items = contract ? capAtExpiry(rawItems, contract.expiration_date) : rawItems;
   const detailPath = symbol && (optSymbol ? routes.option(symbol) : routes.underlying(symbol));
 
   if (underlyings.error) {

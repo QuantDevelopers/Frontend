@@ -11,7 +11,7 @@ import { useInstrumentDaily } from '../hooks/useInstrumentDaily';
 import { useQuery } from '../hooks/useQuery';
 import { api } from '../services/api';
 import { daysUntil, formatCount, formatJalali, formatPrice, toPersianDigits } from '../utils/formatters';
-import { classifyMoneyness, tsetmcUrl } from '../utils/market';
+import { capAtExpiry, classifyMoneyness, isExpired, tsetmcUrl } from '../utils/market';
 import { routes } from '../utils/routes';
 
 type Tab = 'chart' | 'intraday' | 'history';
@@ -49,10 +49,11 @@ export function OptionDetailPage() {
   const o = option.data;
   const exp = o.expiration_date.slice(0, 10);
   const days = daysUntil(exp);
-  const items = daily.data?.items ?? [];
+  const items = capAtExpiry(daily.data?.items ?? [], o.expiration_date);
   const last = items[0];
   const spot = uaLast.data?.items[0]?.close_price;
-  const moneyness = spot ? classifyMoneyness(o.contract_type, o.strike_price, spot) : null;
+  // moneyness against today's spot is meaningless once the contract has expired
+  const moneyness = spot && !isExpired(o) ? classifyMoneyness(o.contract_type, o.strike_price, spot) : null;
 
   return (
     <>
@@ -64,7 +65,7 @@ export function OptionDetailPage() {
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-xl font-bold text-slate-900">{o.symbol_fa}</h1>
               <ContractTypeBadge type={o.contract_type} />
-              <StatusBadge status={o.status} isActive={o.is_active} />
+              <StatusBadge contract={o} />
               {moneyness && <MoneynessBadge value={moneyness} />}
             </div>
             <p className="text-sm text-slate-600">{o.name_fa}</p>

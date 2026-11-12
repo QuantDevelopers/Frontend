@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import type { ContractType, Moneyness } from '../types/api';
-import { CONTRACT_TYPE_LABEL, MONEYNESS_LABEL, STATUS_LABEL, marketLabel } from '../utils/market';
+import type { OptionResponse } from '../types/api';
+import { CONTRACT_TYPE_LABEL, MONEYNESS_LABEL, STATUS_LABEL, contractStatus, marketLabel } from '../utils/market';
 import { CopyButton } from './CopyButton';
 
 type Tone = 'slate' | 'indigo' | 'sky' | 'emerald' | 'rose' | 'amber' | 'violet';
@@ -50,8 +51,8 @@ export function MoneynessBadge({ value }: { value?: Moneyness | null }) {
   );
 }
 
-export function StatusBadge({ status, isActive }: { status?: string; isActive: boolean }) {
-  const key = (status || (isActive ? 'ACTIVE' : 'EXPIRED')).toUpperCase();
+export function StatusBadge({ contract }: { contract: OptionResponse }) {
+  const key = contractStatus(contract);
   return <Badge tone={key === 'ACTIVE' ? 'emerald' : key === 'EXPIRED' ? 'slate' : 'rose'}>{STATUS_LABEL[key] ?? key}</Badge>;
 }
 

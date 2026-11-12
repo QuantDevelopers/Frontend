@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { classifyMoneyness, marketLabel } from './market';
+import { capAtExpiry, classifyMoneyness, contractStatus, marketLabel } from './market';
+import type { DailyHistoryItem } from '../types/api';
 import { formatPrice, normalizeClock, toIsoDay, toPersianDigits } from './formatters';
 import { normalizePersianText } from './normalizePersian';
 
@@ -36,5 +37,17 @@ describe('formatters', () => {
   });
   it('normalizes Arabic ي/ك to Persian ی/ک (rule 7.4)', () => {
     expect(normalizePersianText('بانك ملي')).toBe('بانک ملی');
+  });
+});
+
+describe('contract expiry (backend never flips is_active)', () => {
+  it('reports EXPIRED once the expiry date has passed, whatever the stored flag says', () => {
+    expect(contractStatus({ expiration_date: '2020-01-01T00:00:00Z', status: 'ACTIVE', is_active: true })).toBe('EXPIRED');
+    expect(contractStatus({ expiration_date: '2999-01-01T00:00:00Z', status: 'ACTIVE', is_active: true })).toBe('ACTIVE');
+  });
+  it('drops daily rows after expiry', () => {
+    const bar = (trade_date: string) => ({ trade_date }) as DailyHistoryItem;
+    const items = [bar('2026-11-11'), bar('2026-11-01'), bar('2026-10-31')];
+    expect(capAtExpiry(items, '2026-11-01T00:00:00Z').map((d) => d.trade_date)).toEqual(['2026-11-01', '2026-10-31']);
   });
 });

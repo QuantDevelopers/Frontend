@@ -1,4 +1,5 @@
-import type { ContractType, Moneyness } from '../types/api';
+import type { ContractType, DailyHistoryItem, Moneyness, OptionResponse } from '../types/api';
+import { daysUntil } from './formatters';
 
 /** Backend `market_type` ("Bourse", "Farabourse", ...) -> Persian label. */
 export function marketLabel(marketType: string | null | undefined): string {
@@ -24,6 +25,26 @@ export const STATUS_LABEL: Record<string, string> = {
   EXPIRED: 'منقضی',
   DELISTED: 'حذف‌شده',
 };
+
+/** True once the expiry day (Tehran calendar) has passed; the contract still trades on the expiry day itself. */
+export function isExpired(o: Pick<OptionResponse, 'expiration_date'>): boolean {
+  return daysUntil(o.expiration_date.slice(0, 10)) < 0;
+}
+
+/**
+ * Contract status for display. The backend never flips `is_active`/`status` after expiry,
+ * so a past expiry date always wins over the stored flag.
+ */
+export function contractStatus(o: Pick<OptionResponse, 'expiration_date' | 'status' | 'is_active'>): string {
+  if (isExpired(o)) return 'EXPIRED';
+  return (o.status || (o.is_active ? 'ACTIVE' : 'EXPIRED')).toUpperCase();
+}
+
+/** Drops daily rows after the contract's expiry; the backend keeps returning carried-forward zero-volume bars. */
+export function capAtExpiry(items: DailyHistoryItem[], expirationDate: string): DailyHistoryItem[] {
+  const exp = expirationDate.slice(0, 10);
+  return items.filter((d) => d.trade_date.slice(0, 10) <= exp);
+}
 
 /** ATM band used by the backend (`DefaultATMThresholdPct = 0.01`). */
 const ATM_THRESHOLD_PCT = 0.01;

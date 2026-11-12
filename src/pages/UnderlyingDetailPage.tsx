@@ -10,9 +10,9 @@ import { OptionsBrowser } from '../components/OptionsBrowser';
 import { ErrorState, Loading, Skeleton } from '../components/ui/States';
 import { useInstrumentDaily } from '../hooks/useInstrumentDaily';
 import { useQuery } from '../hooks/useQuery';
-import { api } from '../services/api';
+import { api, fetchAllOptions } from '../services/api';
 import { formatCompact, formatCount, formatJalali, formatPrice, formatPriceChange, toPersianDigits } from '../utils/formatters';
-import { tsetmcUrl } from '../utils/market';
+import { isExpired, tsetmcUrl } from '../utils/market';
 import { routes } from '../utils/routes';
 
 type Tab = 'chart' | 'intraday' | 'history' | 'options';
@@ -24,12 +24,10 @@ export function UnderlyingDetailPage() {
   const asset = useQuery(`underlying:${symbol}`, () => api.underlying(symbol), { ttl: 300_000 });
   const daily = useInstrumentDaily('UNDERLYING', symbol);
   const counts = useQuery(`option-counts:${symbol}`, async () => {
-    const [calls, puts] = await Promise.all(
-      (['CALL', 'PUT'] as const).map((contract_type) =>
-        api.options({ symbol_ua: symbol, is_active: true, contract_type, page_size: 1 })
-      )
-    );
-    return { calls: calls.pagination.totalItems, puts: puts.pagination.totalItems };
+    // fetch the list (not just totals): the backend keeps expired contracts flagged active
+    const live = (await fetchAllOptions({ symbol_ua: symbol, is_active: true })).filter((o) => !isExpired(o));
+    const calls = live.filter((o) => o.contract_type === 'CALL').length;
+    return { calls, puts: live.length - calls };
   });
 
   if (asset.error) {

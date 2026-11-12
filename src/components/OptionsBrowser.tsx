@@ -138,7 +138,7 @@ export function OptionsBrowser({ underlyingSymbol, underlyings }: OptionsBrowser
                         <CodeChip value={o.tsetmc_id} />
                       </td>
                       <td>
-                        <StatusBadge status={o.status} isActive={o.is_active} />
+                        <StatusBadge contract={o} />
                       </td>
                     </tr>
                   );

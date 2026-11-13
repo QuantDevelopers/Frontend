@@ -8,10 +8,6 @@ It shows the data collected by the course backend (QuantBackend: Go / Echo / Pos
 - instrument detail with chart
 - option chain
 - data quality
-
-Every number on screen comes from the backend REST API v1; nothing is hard-coded.
-When the backend has no endpoint for a view (intraday candles, coverage), the frontend derives it from the raw endpoints. See [Computed in the frontend](#computed-in-the-frontend).
-
 ---
 
 ## Quick start
@@ -216,7 +212,3 @@ There are 21 unit tests covering:
 - The «فعال»/«منقضی» (active/expired) filters on the contracts tab load every matching contract (200 per request) and page on the client, because the backend's `is_active` stays true after expiry. «همه» (all) still pages on the server.
 - The option chain shows active contracts only (backend behaviour). Expired contracts are listed under Instruments → contracts → «منقضی».
 
-## AI usage
-
-This frontend was written with help from an AI coding assistant (Claude).
-The team reviews the code and must be able to explain every line, as rule §10 of the course rules requires.
